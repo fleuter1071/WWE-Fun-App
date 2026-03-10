@@ -3,339 +3,620 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WWE Events Prototype</title>
+  <title>WWE Events Explorer</title>
   <style>
     :root {
-      --bg: #0f1115;
-      --panel: #171a21;
-      --panel-2: #1f2430;
-      --text: #f3f5f7;
-      --muted: #a8b0bd;
-      --accent: #ff4747;
-      --accent-2: #ff7a7a;
-      --border: #2b3242;
-      --success: #43c47a;
-      --warning: #f0b429;
+      --bg: #090b10;
+      --bg-2: #111522;
+      --panel: rgba(20, 24, 35, 0.88);
+      --panel-2: rgba(27, 33, 48, 0.95);
+      --panel-3: rgba(35, 42, 61, 0.95);
+      --text: #f5f7fb;
+      --muted: #aab3c5;
+      --accent: #ff3b3b;
+      --accent-2: #ff7a3b;
+      --accent-3: #ffcf4a;
+      --green: #49d17d;
+      --yellow: #f3c14b;
+      --blue: #66b3ff;
+      --border: rgba(255,255,255,0.08);
+      --shadow: 0 16px 50px rgba(0,0,0,0.35);
+      --radius: 18px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    body {
+    html, body {
       margin: 0;
+      min-height: 100%;
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(180deg, #0d0f14 0%, #131824 100%);
       color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,59,59,0.16), transparent 28%),
+        radial-gradient(circle at 85% 10%, rgba(102,179,255,0.14), transparent 28%),
+        radial-gradient(circle at 50% 100%, rgba(255,207,74,0.10), transparent 32%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.015) 50%, transparent 100%);
+      animation: shimmer 10s linear infinite;
+      opacity: 0.45;
+    }
+
+    @keyframes shimmer {
+      from { transform: translateX(-30%); }
+      to { transform: translateX(30%); }
     }
 
     .app {
-      max-width: 1400px;
+      max-width: 1460px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 22px;
     }
 
-    .header {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
+    .topbar {
+      display: grid;
+      grid-template-columns: 1.1fr auto;
+      gap: 18px;
       align-items: end;
-      justify-content: space-between;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
-    .title-wrap h1 {
+    .brand {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 22px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,59,59,0.18), transparent 70%);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-3);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .brand h1 {
       margin: 0 0 8px 0;
-      font-size: 2rem;
-      line-height: 1.1;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.02;
     }
 
-    .title-wrap p {
+    .brand p {
       margin: 0;
       color: var(--muted);
+      max-width: 780px;
+      line-height: 1.5;
     }
 
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .controls input,
-    .controls select,
-    .controls button {
+    .control-panel {
       background: var(--panel);
-      color: var(--text);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 0.95rem;
+      border-radius: 24px;
+      padding: 18px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 12px;
+      min-width: 340px;
     }
 
-    .controls button {
+    .control-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .control-grid input,
+    .control-grid select,
+    .actions button {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 12px 13px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .actions button {
       cursor: pointer;
-      background: var(--accent);
-      border: none;
-      font-weight: 600;
+      font-weight: 700;
+      transition: transform 0.15s ease, background 0.2s ease;
     }
 
-    .controls button:hover {
-      background: var(--accent-2);
+    .actions button:hover {
+      transform: translateY(-1px);
     }
 
-    .status-bar {
-      margin-bottom: 18px;
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border: none !important;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #263149, #1b2335);
+    }
+
+    .status-line {
+      font-size: 0.92rem;
       color: var(--muted);
-      font-size: 0.95rem;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-sub {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 20px;
+      grid-template-columns: 430px 1fr;
+      gap: 18px;
     }
 
     .panel {
-      background: rgba(23, 26, 33, 0.92);
+      background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 18px;
+      border-radius: 24px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
       overflow: hidden;
-      min-height: 500px;
-      backdrop-filter: blur(8px);
     }
 
     .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
       padding: 16px 18px;
       border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
-      font-weight: 700;
+      background: rgba(255,255,255,0.03);
+      font-weight: 800;
+    }
+
+    .panel-header small {
+      color: var(--muted);
+      font-weight: 600;
     }
 
     .event-list {
-      max-height: 75vh;
-      overflow: auto;
       padding: 12px;
+      max-height: 76vh;
+      overflow: auto;
     }
 
     .event-card {
+      position: relative;
       display: grid;
-      grid-template-columns: 110px 1fr;
+      grid-template-columns: 120px 1fr;
       gap: 12px;
-      background: var(--panel-2);
-      border: 1px solid transparent;
-      border-radius: 14px;
-      padding: 10px;
+      padding: 11px;
       margin-bottom: 12px;
+      border-radius: 18px;
+      border: 1px solid transparent;
+      background: var(--panel-2);
       cursor: pointer;
-      transition: 0.2s ease;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      overflow: hidden;
     }
 
     .event-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      border-color: rgba(255,59,59,0.45);
+      background: var(--panel-3);
     }
 
     .event-card.active {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255, 71, 71, 0.2);
+      border-color: rgba(255,122,59,0.85);
+      box-shadow: inset 0 0 0 1px rgba(255,122,59,0.15);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)), var(--panel-3);
     }
 
     .event-thumb {
       width: 100%;
-      height: 82px;
+      height: 100px;
       object-fit: cover;
-      border-radius: 10px;
-      background: #0b0d12;
+      border-radius: 12px;
+      background: #0d1016;
     }
 
-    .event-meta h3 {
+    .event-card-content h3 {
       margin: 0 0 6px 0;
+      line-height: 1.2;
       font-size: 1rem;
-      line-height: 1.25;
     }
 
-    .event-meta .line {
+    .meta-line {
       color: var(--muted);
       font-size: 0.88rem;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
 
-    .badge {
-      display: inline-block;
-      margin-top: 6px;
-      padding: 5px 8px;
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
       border-radius: 999px;
-      font-size: 0.78rem;
+      background: rgba(255,255,255,0.06);
+      color: #dce2ec;
+      font-size: 0.77rem;
       font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
-    .badge.finished {
-      background: rgba(67, 196, 122, 0.14);
-      color: var(--success);
-    }
+    .chip.finished { color: var(--green); }
+    .chip.upcoming { color: var(--yellow); }
+    .chip.title-change { color: var(--accent-3); }
 
-    .badge.upcoming {
-      background: rgba(240, 180, 41, 0.14);
-      color: var(--warning);
-    }
-
-    .detail {
+    .detail-wrap {
+      min-height: 650px;
       display: flex;
       flex-direction: column;
-      min-height: 100%;
+    }
+
+    .detail-empty {
+      padding: 26px;
+      color: var(--muted);
     }
 
     .hero {
       position: relative;
-      min-height: 250px;
-      background: #111;
+      min-height: 290px;
       border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      background: #10131a;
     }
 
     .hero img {
       width: 100%;
-      height: 250px;
+      height: 290px;
       object-fit: cover;
       display: block;
-      opacity: 0.82;
+      opacity: 0.86;
+      transform: scale(1.02);
     }
 
     .hero-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top, rgba(15,17,21,0.94), rgba(15,17,21,0.25));
+      padding: 22px;
       display: flex;
-      align-items: end;
-      padding: 20px;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+      background: linear-gradient(to top, rgba(10,12,16,0.96), rgba(10,12,16,0.18));
     }
 
-    .hero-overlay h2 {
+    .hero-text h2 {
       margin: 0 0 8px 0;
-      font-size: 2rem;
-      line-height: 1.1;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      line-height: 1.05;
     }
 
-    .hero-sub {
-      color: #d7dce4;
-      font-size: 0.96rem;
+    .hero-text p {
+      margin: 0;
+      color: #d9dfeb;
+      line-height: 1.4;
+    }
+
+    .hero-badge {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      white-space: nowrap;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
     }
 
     .detail-body {
-      padding: 20px;
+      padding: 18px;
       display: grid;
-      gap: 18px;
+      gap: 16px;
     }
 
-    .detail-grid {
+    .info-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
     }
 
-    .info-box {
+    .info-card {
+      padding: 14px;
+      border-radius: 16px;
       background: var(--panel-2);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
     }
 
-    .info-box .label {
+    .info-label {
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       margin-bottom: 6px;
     }
 
-    .info-box .value {
-      font-size: 1rem;
-      line-height: 1.4;
+    .info-value {
+      line-height: 1.35;
+      font-weight: 700;
     }
 
     .section {
       background: var(--panel-2);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
+      border-radius: 18px;
+      overflow: hidden;
     }
 
-    .section h3 {
-      margin: 0 0 12px 0;
+    .section-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .section-top h3 {
+      margin: 0;
       font-size: 1rem;
+    }
+
+    .section-top button {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .section-body {
+      padding: 16px;
     }
 
     .multiline {
       white-space: pre-line;
-      color: #e6eaf0;
-      line-height: 1.55;
+      line-height: 1.58;
+      color: #e8edf7;
     }
 
-    .video-link {
-      display: inline-block;
-      margin-top: 8px;
-      color: #fff;
-      background: var(--accent);
-      padding: 10px 12px;
-      border-radius: 10px;
+    .collapsed .section-body {
+      display: none;
+    }
+
+    .detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .detail-actions a,
+    .detail-actions button {
+      border: none;
       text-decoration: none;
-      font-weight: 700;
+      color: var(--text);
+      padding: 11px 13px;
+      border-radius: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      background: linear-gradient(135deg, #28344c, #1b2335);
     }
 
-    .video-link:hover {
-      background: var(--accent-2);
+    .detail-actions .watch {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
     }
 
-    .empty {
-      padding: 24px;
+    .small-note {
       color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.5;
     }
 
-    @media (max-width: 980px) {
-      .layout {
+    .pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 rgba(255,59,59,0.7);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,59,59,0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(255,59,59,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,59,59,0); }
+    }
+
+    @media (max-width: 1180px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .layout { grid-template-columns: 1fr; }
+      .event-list { max-height: none; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .topbar { grid-template-columns: 1fr; }
+      .control-panel { min-width: 0; }
+    }
+
+    @media (max-width: 720px) {
+      .app { padding: 14px; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .control-grid,
+      .actions,
+      .info-grid {
         grid-template-columns: 1fr;
       }
-
-      .event-list {
-        max-height: none;
-      }
-
-      .detail-grid {
+      .event-card {
         grid-template-columns: 1fr;
+      }
+      .event-thumb {
+        height: 160px;
+      }
+      .hero img {
+        height: 240px;
+      }
+      .hero {
+        min-height: 240px;
+      }
+      .hero-overlay {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <div class="header">
-      <div class="title-wrap">
-        <h1>WWE Events Prototype</h1>
-        <p>Simple test UI for TheSportsDB WWE events endpoint</p>
-      </div>
+    <div class="topbar">
+      <section class="brand">
+        <div class="eyebrow"><span class="pulse"></span> WWE Event Explorer</div>
+        <h1>Browse shows, cards, results, and title changes</h1>
+        <p>
+          A more playful prototype for exploring WWE events from TheSportsDB. Search, filter,
+          sort, jump to a random event, and inspect match cards and results in a more visual way.
+        </p>
+      </section>
 
-      <div class="controls">
-        <select id="seasonSelect">
-          <option value="2026" selected>2026</option>
-          <option value="2025">2025</option>
-          <option value="2024">2024</option>
-        </select>
-        <input id="searchInput" type="text" placeholder="Search event name or city..." />
-        <button id="loadBtn">Load Events</button>
-      </div>
+      <aside class="control-panel">
+        <div class="control-grid">
+          <select id="seasonSelect">
+            <option value="2026" selected>Season 2026</option>
+            <option value="2025">Season 2025</option>
+            <option value="2024">Season 2024</option>
+          </select>
+
+          <select id="statusFilter">
+            <option value="all">All statuses</option>
+            <option value="finished">Finished only</option>
+            <option value="upcoming">Upcoming / not started</option>
+          </select>
+
+          <input id="searchInput" type="text" placeholder="Search event, city, venue..." />
+
+          <select id="sortSelect">
+            <option value="newest" selected>Sort: Newest first</option>
+            <option value="oldest">Sort: Oldest first</option>
+            <option value="name">Sort: Name A-Z</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="loadBtn">Load Events</button>
+          <button class="btn-secondary" id="surpriseBtn">🎲 Surprise Me</button>
+        </div>
+
+        <div class="status-line" id="statusLine">Ready to load WWE events.</div>
+      </aside>
     </div>
 
-    <div class="status-bar" id="statusBar">Ready.</div>
+    <section class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Visible Events</div>
+        <div class="stat-value" id="visibleCount">0</div>
+        <div class="stat-sub">Events matching your current filters</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Finished</div>
+        <div class="stat-value" id="finishedCount">0</div>
+        <div class="stat-sub">Completed events in current view</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Upcoming</div>
+        <div class="stat-value" id="upcomingCount">0</div>
+        <div class="stat-sub">Events not started yet</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Title Changes</div>
+        <div class="stat-value" id="titleChangeCount">0</div>
+        <div class="stat-sub">Detected from result text</div>
+      </div>
+    </section>
 
     <div class="layout">
-      <div class="panel">
-        <div class="panel-header">Events</div>
-        <div id="eventList" class="event-list"></div>
-      </div>
+      <section class="panel">
+        <div class="panel-header">
+          <span>Event List</span>
+          <small id="listMeta">0 loaded</small>
+        </div>
+        <div class="event-list" id="eventList"></div>
+      </section>
 
-      <div class="panel detail" id="detailPanel">
-        <div class="empty">Select an event to see details.</div>
-      </div>
+      <section class="panel detail-wrap" id="detailPanel">
+        <div class="detail-empty">Pick an event to see the full breakdown.</div>
+      </section>
     </div>
   </div>
 
@@ -343,12 +624,21 @@
     const API_KEY = "123";
     const LEAGUE_ID = "4444";
 
+    const seasonSelectEl = document.getElementById("seasonSelect");
+    const statusFilterEl = document.getElementById("statusFilter");
+    const searchInputEl = document.getElementById("searchInput");
+    const sortSelectEl = document.getElementById("sortSelect");
+    const loadBtnEl = document.getElementById("loadBtn");
+    const surpriseBtnEl = document.getElementById("surpriseBtn");
+    const statusLineEl = document.getElementById("statusLine");
     const eventListEl = document.getElementById("eventList");
     const detailPanelEl = document.getElementById("detailPanel");
-    const statusBarEl = document.getElementById("statusBar");
-    const seasonSelectEl = document.getElementById("seasonSelect");
-    const searchInputEl = document.getElementById("searchInput");
-    const loadBtnEl = document.getElementById("loadBtn");
+    const listMetaEl = document.getElementById("listMeta");
+
+    const visibleCountEl = document.getElementById("visibleCount");
+    const finishedCountEl = document.getElementById("finishedCount");
+    const upcomingCountEl = document.getElementById("upcomingCount");
+    const titleChangeCountEl = document.getElementById("titleChangeCount");
 
     let allEvents = [];
     let filteredEvents = [];
@@ -360,247 +650,69 @@
           idEvent: "2403782",
           strEvent: "SmackDown #1376",
           strSeason: "2026",
-          strDescriptionEN: "Eight Man Tag Team Match\\nAlexa Bliss, Charlotte Flair, IYO SKY & Rhea Ripley vs. Lash Legend, Nia Jax & The Kabuki Warriors (Asuka & Kairi Sane)\\n\\nSingles Match\\nMatt Cardona vs. Kit Wilson",
-          strResult: "Eight Man Tag Team Match\\nAlexa Bliss, Charlotte Flair, IYO SKY & Rhea Ripley defeat Lash Legend, Nia Jax & The Kabuki Warriors (Asuka & Kairi Sane) (14:32)\\n\\nSingles Match\\nMatt Cardona defeats Kit Wilson (4:19)",
-          strTimestamp: "2026-01-03T01:00:00",
+          strDescriptionEN: "Eight Man Tag Team Match\\nAlexa Bliss, Charlotte Flair, IYO SKY & Rhea Ripley vs. Lash Legend, Nia Jax & The Kabuki Warriors (Asuka & Kairi Sane)\\n\\nSingles Match\\nMatt Cardona vs. Kit Wilson\\n\\nWWE United States Title Match\\nCarmelo Hayes (c) vs. Johnny Gargano",
+          strResult: "Eight Man Tag Team Match\\nAlexa Bliss, Charlotte Flair, IYO SKY & Rhea Ripley defeat Lash Legend, Nia Jax & The Kabuki Warriors (Asuka & Kairi Sane) (14:32)\\n\\nSingles Match\\nMatt Cardona defeats Kit Wilson (4:19)\\n\\nWWE United States Title Match\\nCarmelo Hayes (c) defeats Johnny Gargano (16:46)",
           dateEvent: "2026-01-03",
           dateEventLocal: "2026-01-02",
-          strTime: "01:00:00",
           strTimeLocal: "20:00:00",
-          idVenue: "24841",
           strVenue: "Keybank Center",
           strCountry: "United States",
           strCity: "Buffalo, New York",
           strFanart: "https://r2.thesportsdb.com/images/media/event/fanart/vumu8a1767432229.jpg",
           strThumb: "https://r2.thesportsdb.com/images/media/event/thumb/72qxa31767432222.jpg",
           strVideo: "https://www.youtube.com/watch?v=zyMRVXpyk64",
-          strStatus: "Match Finished",
-          strPostponed: "no"
+          strStatus: "Match Finished"
         },
         {
           idEvent: "2403787",
           strEvent: "RAW #1702 Raw Is Stranger Things",
           strSeason: "2026",
-          strDescriptionEN: "WWE Women's Tag Team Title Match\\nThe Kabuki Warriors (Asuka & Kairi Sane) (c) vs. IYO SKY & Rhea Ripley\\n\\nWWE World Heavyweight Title Match\\nCM Punk (c) vs. Bron Breakker",
-          strResult: "WWE Women's Tag Team Title Match\\nIYO SKY & Rhea Ripley defeat The Kabuki Warriors (Asuka & Kairi Sane) (c) (16:27) - TITLE CHANGE !!!\\n\\nWWE World Heavyweight Title Match\\nCM Punk (c) defeats Bron Breakker (26:34)",
-          strTimestamp: "2026-01-06T01:00:00",
+          strDescriptionEN: "WWE Women's Tag Team Title Match\\nThe Kabuki Warriors (Asuka & Kairi Sane) (c) vs. IYO SKY & Rhea Ripley\\n\\nWWE Women's Intercontinental Title Match\\nMaxxine Dupri (c) vs. Becky Lynch\\n\\nWWE World Heavyweight Title Match\\nCM Punk (c) vs. Bron Breakker",
+          strResult: "WWE Women's Tag Team Title Match\\nIYO SKY & Rhea Ripley defeat The Kabuki Warriors (Asuka & Kairi Sane) (c) (16:27) - TITLE CHANGE !!!\\n\\nWWE Women's Intercontinental Title Match\\nBecky Lynch defeats Maxxine Dupri (c) (11:37) - TITLE CHANGE !!!\\n\\nWWE World Heavyweight Title Match\\nCM Punk (c) defeats Bron Breakker (26:34)",
           dateEvent: "2026-01-06",
           dateEventLocal: "2026-01-05",
-          strTime: "01:00:00",
           strTimeLocal: "20:00:00",
-          idVenue: "23447",
           strVenue: "Barclays Center",
           strCountry: "United States",
           strCity: "New York City, New York",
           strFanart: "https://r2.thesportsdb.com/images/media/event/fanart/3sm08d1767710545.jpg",
           strThumb: "https://r2.thesportsdb.com/images/media/event/thumb/du3nfu1767769212.jpg",
           strVideo: "https://www.youtube.com/watch?v=QHx4tLRlc5Q",
-          strStatus: "Match Finished",
-          strPostponed: "no"
+          strStatus: "Match Finished"
+        },
+        {
+          idEvent: "2412448",
+          strEvent: "EVOLVE #43",
+          strSeason: "2026",
+          strDescriptionEN: "Singles Match\\nTimothy Thatcher vs. Charlie Dempsey\\n\\nWWE EVOLVE Women's Title Triple Threat Match\\nKendal Grey (c) vs. Kali Armstrong vs. PJ Vasa",
+          strResult: "Singles Match\\nTimothy Thatcher vs. Charlie Dempsey\\n\\nWWE EVOLVE Women's Title Triple Threat Match\\nKendal Grey (c) vs. Kali Armstrong vs. PJ Vasa",
+          dateEvent: "2026-01-15",
+          dateEventLocal: "2026-01-14",
+          strTimeLocal: "20:00:00",
+          strVenue: "WWE Performance Center",
+          strCountry: "United States",
+          strCity: "Orlando, Florida",
+          strFanart: "",
+          strThumb: "",
+          strVideo: "",
+          strStatus: "Not Started"
         }
       ]
     };
 
-    function setStatus(message) {
-      statusBarEl.textContent = message;
+    function setStatus(text) {
+      statusLineEl.textContent = text;
     }
 
-    function formatStatus(status) {
-      return status === "Match Finished" ? "Finished" : status || "Unknown";
-    }
-
-    function getBadgeClass(status) {
-      return status === "Match Finished" ? "finished" : "upcoming";
-    }
-
-    function safeText(value, fallback = "—") {
+    function safe(value, fallback = "—") {
       return value && String(value).trim() ? value : fallback;
+    }
+
+    function getImage(event) {
+      return event.strThumb || event.strFanart || "https://via.placeholder.com/1200x675?text=WWE+Event";
     }
 
     function formatDate(dateStr) {
       if (!dateStr) return "—";
       const d = new Date(dateStr + "T00:00:00");
-      return d.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        year: "numeric"
-      });
-    }
-
-    function renderList(events) {
-      if (!events.length) {
-        eventListEl.innerHTML = '<div class="empty">No events found.</div>';
-        return;
-      }
-
-      eventListEl.innerHTML = events.map(event => {
-        const thumb = event.strThumb || event.strFanart || "https://via.placeholder.com/320x180?text=WWE";
-        const isActive = event.idEvent === selectedEventId ? "active" : "";
-        const badgeClass = getBadgeClass(event.strStatus);
-
-        return `
-          <div class="event-card ${isActive}" data-id="${event.idEvent}">
-            <img class="event-thumb" src="${thumb}" alt="${safeText(event.strEvent)}" />
-            <div class="event-meta">
-              <h3>${safeText(event.strEvent)}</h3>
-              <div class="line">${formatDate(event.dateEventLocal || event.dateEvent)} • ${safeText(event.strTimeLocal)}</div>
-              <div class="line">${safeText(event.strVenue)} • ${safeText(event.strCity)}</div>
-              <span class="badge ${badgeClass}">${formatStatus(event.strStatus)}</span>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      document.querySelectorAll(".event-card").forEach(card => {
-        card.addEventListener("click", () => {
-          const id = card.dataset.id;
-          const event = filteredEvents.find(e => e.idEvent === id);
-          if (event) {
-            selectedEventId = id;
-            renderList(filteredEvents);
-            renderDetail(event);
-          }
-        });
-      });
-    }
-
-    function renderDetail(event) {
-      const heroImage = event.strFanart || event.strThumb || "https://via.placeholder.com/1200x400?text=WWE+Event";
-      const videoLink = event.strVideo
-        ? `<a class="video-link" href="${event.strVideo}" target="_blank" rel="noopener noreferrer">Watch Video</a>`
-        : "";
-
-      detailPanelEl.innerHTML = `
-        <div class="hero">
-          <img src="${heroImage}" alt="${safeText(event.strEvent)}" />
-          <div class="hero-overlay">
-            <div>
-              <h2>${safeText(event.strEvent)}</h2>
-              <div class="hero-sub">
-                ${formatDate(event.dateEventLocal || event.dateEvent)} • ${safeText(event.strTimeLocal)} • ${safeText(event.strVenue)}, ${safeText(event.strCity)}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="detail-body">
-          <div class="detail-grid">
-            <div class="info-box">
-              <div class="label">Status</div>
-              <div class="value">${formatStatus(event.strStatus)}</div>
-            </div>
-            <div class="info-box">
-              <div class="label">Season</div>
-              <div class="value">${safeText(event.strSeason)}</div>
-            </div>
-            <div class="info-box">
-              <div class="label">Venue</div>
-              <div class="value">${safeText(event.strVenue)}</div>
-            </div>
-            <div class="info-box">
-              <div class="label">Location</div>
-              <div class="value">${safeText(event.strCity)}, ${safeText(event.strCountry)}</div>
-            </div>
-          </div>
-
-          <div class="section">
-            <h3>Announced Card</h3>
-            <div class="multiline">${safeText(event.strDescriptionEN, "No card available.")}</div>
-          </div>
-
-          <div class="section">
-            <h3>Results</h3>
-            <div class="multiline">${safeText(event.strResult, "No results available.")}</div>
-            ${videoLink}
-          </div>
-        </div>
-      `;
-    }
-
-    function applySearch() {
-      const query = searchInputEl.value.trim().toLowerCase();
-
-      filteredEvents = allEvents.filter(event => {
-        const haystack = [
-          event.strEvent,
-          event.strCity,
-          event.strVenue,
-          event.strDescriptionEN
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        return haystack.includes(query);
-      });
-
-      renderList(filteredEvents);
-
-      if (!filteredEvents.find(e => e.idEvent === selectedEventId)) {
-        selectedEventId = filteredEvents[0]?.idEvent || null;
-        if (filteredEvents[0]) {
-          renderDetail(filteredEvents[0]);
-        } else {
-          detailPanelEl.innerHTML = '<div class="empty">No matching event selected.</div>';
-        }
-      }
-    }
-
-    async function loadEvents() {
-      const season = seasonSelectEl.value;
-      const url = `https://www.thesportsdb.com/api/v1/json/${API_KEY}/eventsseason.php?id=${LEAGUE_ID}&s=${season}`;
-
-      setStatus(`Loading WWE ${season} events...`);
-
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!data.events || !Array.isArray(data.events)) {
-          throw new Error("No events array returned");
-        }
-
-        allEvents = data.events;
-        filteredEvents = [...allEvents];
-        selectedEventId = filteredEvents[0]?.idEvent || null;
-
-        renderList(filteredEvents);
-
-        if (filteredEvents[0]) {
-          renderDetail(filteredEvents[0]);
-        } else {
-          detailPanelEl.innerHTML = '<div class="empty">No events returned.</div>';
-        }
-
-        setStatus(`Loaded ${filteredEvents.length} WWE events for ${season}.`);
-      } catch (error) {
-        console.warn("Live fetch failed. Using sample data instead.", error);
-
-        allEvents = sampleData.events;
-        filteredEvents = [...allEvents];
-        selectedEventId = filteredEvents[0]?.idEvent || null;
-
-        renderList(filteredEvents);
-
-        if (filteredEvents[0]) {
-          renderDetail(filteredEvents[0]);
-        } else {
-          detailPanelEl.innerHTML = '<div class="empty">No sample events available.</div>';
-        }
-
-        setStatus("Live fetch failed, so sample WWE data is being shown instead.");
-      }
-    }
-
-    loadBtnEl.addEventListener("click", loadEvents);
-    searchInputEl.addEventListener("input", applySearch);
-
-    loadEvents();
-  </script>
-</body>
-</html>
+      return d.toLocaleDateString(undefin
